@@ -1,7 +1,7 @@
 'use strict';
 
 const { extractEvent } = require('../services/groq');
-const { saveEvent } = require('../services/firestore');
+const config = require('../config');
 
 /**
  * Format a parsed event into a human-readable confirmation message.
@@ -30,12 +30,20 @@ function formatEvent(event) {
 function register(bot) {
   bot.on('text', async (ctx) => {
     const text = ctx.message.text;
-    if (text.startsWith('/')) return; // skip commands
+    if (text.startsWith('/')) return;
 
     try {
       await ctx.sendChatAction('typing');
       const event = await extractEvent(text);
-      const docId = await saveEvent(ctx.from.id, event);
+
+      const res = await fetch(`http://localhost:${config.port}/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegramUserId: ctx.from.id, event }),
+      });
+
+      if (!res.ok) throw new Error(`Backend responded ${res.status}`);
+
       await ctx.reply(formatEvent(event) + `\n\n💾 Saved To Google Calandar`, { parse_mode: 'Markdown' });
     } catch (err) {
       console.error('[message handler]', err.message);

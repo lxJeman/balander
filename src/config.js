@@ -6,6 +6,7 @@ const config = {
   botToken: process.env.BOT_TOKEN,
   groqApiKey: process.env.GROQ_API_KEY,
   nodeEnv: process.env.NODE_ENV || 'development',
+  port: process.env.PORT || 3000,
 };
 
 if (!config.botToken) throw new Error('BOT_TOKEN is required in .env');
